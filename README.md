@@ -8,34 +8,34 @@ same CS line. The library should be used like this:
 
 	// Object for up to 8 chips using Arduino pin 10 as CS
 	Mcp23s17 Mcp(10);
-	// Set ChipAddress A3 to actual value to override MCP bug even when  
-	// hardware addressing will not be enabled.  
-	// Set ChipAddress to actual address when hardware addressing will be enabled  
-	// or more than one chip is added  
-	Mcp.addChip(0b000);  
-	Mcp.addChip(0b001);  
-	Mcp.addChip(0b010);  
-	// Initialize chips to hardware addressing or do not enable it for single chip  
-	// and initialize SPI library  
-	Mcp.begin(false);  
-	// Advertise SPI if we are reading/writing via SPI to the MCP chip from inside  
-	// an interrupt service routine  
-	SPI.usingInterrupt(digitalPinToInterrupt(MY_INT_PIN));  
-	// Configure chip 1 interrupt as HIGH, with both INTA and INTB synced  
-	Mcp.configInterrupts(1, HIGH, true, false);  
-	// Configure chip 1 input pins with pullup resistor and enable interrupts on CHANGE  
-	GpioPinMask Input = GPA0_BIT | GPA1_BIT | GPB0_BIT | GPB1_BIT;  
-	Mcp.configGpio(1, Input, INPUT_PULLUP, false, INT_CHANGE);  
-	// Configure chip 0 output pins  
-	GpioPinMask Output = GPA2_BIT | GPA3_BIT | GPB6_BIT | GPB7_BIT;  
-	Mcp.configGpio(0, Output, OUTPUT, false);  
-	// Read and write some values  
-	word Values = Mcp.readPort(1);  
-	Mcp.writePortA(0, 0b00001100);  
-	Mcp.writePin(GPB6, 0);  
-	// Free SPI resources  
-	SPI.notUsingInterrupt(digitalPinToInterrupt(MY_INT_PIN));  
-	Mcp.end();  
+	// Set ChipAddress A3 to actual value to override MCP bug even when
+	// hardware addressing will not be enabled.
+	// Set ChipAddress to actual address when hardware addressing will be enabled
+	// or more than one chip is added
+	Mcp.addChip(0b000);
+	Mcp.addChip(0b001);
+	Mcp.addChip(0b010);
+	// Initialize chips to hardware addressing or do not enable it for single chip
+	// and initialize SPI library
+	Mcp.begin(false);
+	// Advertise SPI if we are reading/writing via SPI to the MCP chip from inside
+	// an interrupt service routine
+	SPI.usingInterrupt(digitalPinToInterrupt(MY_INT_PIN));
+	// Configure chip 1 interrupt as HIGH, with both INTA and INTB synced
+	Mcp.configInterrupts(1, HIGH, true, false);
+	// Configure chip 1 input pins with pullup resistor and enable interrupts on CHANGE
+	GpioPinMask Input = GPA0_BIT | GPA1_BIT | GPB0_BIT | GPB1_BIT;
+	Mcp.configGpio(1, Input, INPUT_PULLUP, false, INT_CHANGE);
+	// Configure chip 0 output pins
+	GpioPinMask Output = GPA2_BIT | GPA3_BIT | GPB6_BIT | GPB7_BIT;
+	Mcp.configGpio(0, Output, OUTPUT, false);
+	// Read and write some values
+	word Values = Mcp.readPort(1);
+	Mcp.writePortA(0, 0b00001100);
+	Mcp.writePin(GPB6, 0);
+	// Free SPI resources
+	SPI.notUsingInterrupt(digitalPinToInterrupt(MY_INT_PIN));
+	Mcp.end();
 
 
 Copyright (C) 2019, Óscar Laborda
