@@ -6,7 +6,6 @@ multi I/O integrated circuits.
 Each object instance of the class Mcp23s17 can manage up to 8 chips in the
 same CS line. The library should be used like this:
 
-// E.g.:
 // Object for up to 8 chips using Arduino pin 10 as CS
 Mcp23s17 Mcp(10);
 // Set ChipAddress A3 to actual value to override MCP bug even when
