@@ -1,16 +1,38 @@
+/*
+ *   Mcp23s17.cpp - Library to handle Microchip MCP23S17 integrated circuits.
+ *
+ *   Copyright (C) 2019 Óscar Laborda
+ *
+ *   This file is part of Mcp23s17 library.
+ *
+ *   Mcp23s17 is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *   Mcp23s17 is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *  along with Mcp23s17.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+
 #include "Mcp23s17.h"
 #include <string.h>
 
-// When IOCON.HAEN = 0 (hardware addressing disabled): If the A2 pin is high,
-// then the device must be addressed as A2, A1, A0 = 1xx
-// (i.e. OPCODE = b0100 1XX)
-// See document 80311a.pdf MCP23S13 Rev. A Silicon Errdata for more info.
-// Define macro DISABLE_MCP23S17_REV_A_BUGFIX if your chips are free of this
-// bug:
-//  #define DISABLE_MCP23S17_REV_A_BUGFIX
-// or in compile time with parameter:
-//  -DDISABLE_MCP23S17_REV_A_BUGFIX
-
+/*
+ *   The MCP23S17 chip has a bug in the addressing when IOCON.HAEN = 0
+ *  (hardware addressing disabled): if the A2 pin is high,
+ *  then the device must be addressed as A2, A1, A0 = 1xx
+ *  (i.e. OPCODE = b01001XXR)
+ *   See document 80311a.pdf MCP23S13 Rev. A Silicon Errdata for more info.
+ *   Define macro DISABLE_MCP23S17_REV_A_BUGFIX in compile time if your chips
+ *  are free of this bug:
+ *   -DDISABLE_MCP23S17_REV_A_BUGFIX
+*/
 
 // Initialize static member data
 
@@ -52,7 +74,7 @@ Mcp23s17::Mcp23s17(uint8_t Cs):
  *  * true when Addr is not valid or is already in use (includin all chip slots
  *    are filled).
  */
-bool Mcp23s17::addChip(byte Addr /* =DEFAULT_ADDR */,
+bool Mcp23s17::addChip(byte Addr /* =ADDR_NOHW */,
   uint8_t *pChipId /* = nullptr */)
 {
   byte OcAddr;
@@ -91,7 +113,7 @@ bool Mcp23s17::addChip(byte Addr /* =DEFAULT_ADDR */,
  *    is not performed in that case.
  *  * false when successful.
  */
-bool Mcp23s17::begin(bool ForceHwAddressing) const
+bool Mcp23s17::begin(bool ForceHwAddressing /* =false */) const
 {
   if (_NumChips == 0)
     return true;
@@ -105,7 +127,13 @@ bool Mcp23s17::begin(bool ForceHwAddressing) const
 
   if (ForceHwAddressing || _NumChips > 1)
     _enableHwAddressing();
-
+#ifdef DISABLE_MCP23S17_REV_A_BUGFIX
+  else
+    // As there is no bug, we can force the default address when hw addressing
+    // is deactivated. Otherwise the class user should set the correct one
+    _ChipOcAddr[0] = _opcodeAddr(ADDR_NOHW);
+#endif
+  
   return false;
 }
 
@@ -170,7 +198,7 @@ bool Mcp23s17::configInterrupts(uint8_t ChipId, uint8_t Polarity,
  *  * true when a paramter has invalid value.
  */
 bool Mcp23s17::configGpio(uint8_t ChipId, GpioPinMask PinMask, uint8_t IoMode,
-  bool PolInverse, InterruptMode IntMode) const
+  bool PolInverse /* =false */, InterruptMode IntMode /* =INT_OFF */) const
 {
   // Buffer for GPIO control registers
   byte Registers[_INTCAPB+1];
@@ -340,14 +368,14 @@ void Mcp23s17::_enableHwAddressing() const
 #ifndef DISABLE_MCP23S17_REV_A_BUGFIX
   _write(_ADDR_NOHW_BUG, _IOCON, _IOCON_HAEN_BIT);
 #endif
-  _write(_ADDR_NOHW, _IOCON, _IOCON_HAEN_BIT);
+  _write(ADDR_NOHW, _IOCON, _IOCON_HAEN_BIT);
 }
 
 
 /*
  *   Returns register values for desired GPIO pin I/O configuration.
  *  Parameters:
- *  * IoMode (INPUT, OUPUT, OUTPUT_PULLUP): desired I/O function for the pin
+ *  * IoMode (INPUT, OUPUT, INPUT_PULLUP): desired I/O function for the pin
  *  * pIodir: a bit value indicating whether the corresponding IODIR register
  *    bit should be enabled or disabled.
  *  * pGppu: a bit value indicating whether the corresponding GPPU register

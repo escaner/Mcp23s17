@@ -1,19 +1,54 @@
+/*
+ *   Mcp23s17.h - Library to handle Microchip MCP23S17 integrated circuits.
+ *
+ *   Copyright (C) 2019 Óscar Laborda
+ *
+ *   This file is part of Mcp23s17 library.
+ *
+ *   Mcp23s17 is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *   Mcp23s17 is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *  along with Mcp23s17.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+
 #ifndef _MCP23S17_H_
 #define _MCP23S17_H_
 
 #include <Arduino.h>
 #include <SPI.h>
 
-// ******** endian.h not found for Arduino ******
-// #include <endian.h>
-#define le16toh(x) (x)
-#define htole16(x) (x)
+// Arduino has no endian.h header, but fortunately it is Little Endian
+// so we can just define these macros to identity in that case.
+#if !defined(__BYTE_ORDER__) || __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#  include <endian.h>
+#else
+#  define le16toh(x) (x)
+#  define htole16(x) (x)
+#endif
 
 /*
- *   If more than 1 chip, hardware addressing will be enabled.
- *  If only 1 chip is used and hardware addressing is not forced by the user,
- *  it will not be activated, but the chip address should still match its
- *  address in bit A2 because of a but in the MCP23s17 Rev A IC.
+ *   If more than 1 chip is managed by an object instance, hardware addressing
+ *  will be enabled (IOCON.HAEN = 1).
+ *   If only 1 chip is used and hardware addressing is not forced by the user,
+ *  it will not be activated; in that circumstance, the MCP23S17 Rev A chip has
+ *  a bug that makes addressing chips with A2 address pin set to high only read
+ *  opcodes where that address bit is also set to high.
+ *   This is why when hardware addressing is disabled, the chip should always
+ *  be initialized with that address bit set correctly in the addChip() method.
+ *   Define macro DISABLE_MCP23S17_REV_A_BUGFIX in compile time if your chips
+ *  are free of this bug:
+ *   -DDISABLE_MCP23S17_REV_A_BUGFIX
+ *  In this case, the address in the call to addChip() for a asingle chip
+ *  does not matter, as it will be overwritten to 0b000.
  */
 
 class Mcp23s17
@@ -55,19 +90,21 @@ public:
     INT_OFF, INT_LOW, INT_HIGH, INT_CHANGE
   };
 
-  static const uint8_t GPIO_NUM_PINS = 16;
-  static const uint8_t GPIO_NUM_PORTS = 2;
+  // Class public constants
+  static const uint8_t GPIO_NUM_PINS = 16;  // Total I/O pins per chip
+  static const uint8_t GPIO_NUM_PORTS = 2;  // Each chip has 2 GPIO ports
   static const uint8_t GPIO_NUM_PINS_PER_PORT = GPIO_NUM_PINS / GPIO_NUM_PORTS;
-  static const uint8_t MAX_CHIPS = 8;
-  static const byte DEFAULT_ADDR = 0b000;
+  static const uint8_t MAX_CHIPS = 8;       // Max number of chips per CS line
+  static const byte ADDR_NOHW = 0b000;
 
+  // Public methods
   Mcp23s17(uint8_t Cs);
-  bool addChip(byte Addr=DEFAULT_ADDR, uint8_t *pChipId=nullptr);
-  bool begin(bool HwAddressing) const;
+  bool addChip(byte Addr=ADDR_NOHW, uint8_t *pChipId=nullptr);
+  bool begin(bool HwAddressing=false) const;
   bool configInterrupts(uint8_t ChipId, uint8_t Polarity, bool Mirror=false,
     bool OpenDrain=false) const;
   bool configGpio(uint8_t ChipId, GpioPinMask PinMask, uint8_t Mode,
-    bool PolInverse, InterruptMode IntMode) const;
+    bool PolInverse=false, InterruptMode IntMode=INT_OFF) const;
 
   uint8_t readPin(uint8_t ChipId, GpioPin Pin) const;
   void writePin(uint8_t ChipId, GpioPin Pin, uint8_t Value) const;
@@ -154,20 +191,21 @@ protected:
     _IOCON_BANK_BIT =   bit(_IOCON_BANK)
   };
 
+  // Protected class constants
   static const byte _OPCODE_R = 0b01000001;
   static const byte _OPCODE_W = 0b01000000;
   static const byte _OPCODE_NOOP = 0x00;
-  static const byte _ADDR_NOHW = 0b000;
   static const byte _ADDR_NOHW_BUG = 0b100;
   static const uint8_t _OPCODE_ADDR_SHIFT = 1;
-  // static const uint8_t _CHIPID_NOADDR = 0xff;
   static const uint32_t _CLOCK_MAX_FREQ = 10E6;  // Max freq of chip is 10MHz
   static const SPISettings _SpiSettings;
 
+  // Object protected data
   const uint8_t _Cs;  // Chip Select Arduino pin
   uint8_t _NumChips;  // Number of MCP chips in this CS line (max 8)
   byte _ChipOcAddr[MAX_CHIPS];  // Address in opcode format (already shifted)
 
+  // Protected methods
   void _enableHwAddressing() const;
   bool _gpioIoMode(uint8_t PinMode, uint8_t *pIodir, uint8_t *pGppu) const;
   void _gpioPolMode(bool PolInverse, uint8_t *pIpol) const;
@@ -206,7 +244,7 @@ inline word Mcp23s17::readPort(uint8_t ChipId) const
   // Read GPIOA/B. Convention: A:low B:high => got it stored as Little Endian
   _read(_ChipOcAddr[ChipId], _GPIO, (byte *) &Value, sizeof Value);
 
-  // Arduino is Little Endian, but for portability convert LE to host CPU endian
+  // Convert Little Endian to host CPU endian
   return le16toh(Value);
 }
 
@@ -331,7 +369,7 @@ inline word Mcp23s17::readIntFlags(uint8_t ChipId) const
   // Read INTFA/B. Convention: A:low B:high => got it stored as Little Endian
   _read(_ChipOcAddr[ChipId], _INTF, (byte *) &Flags, sizeof Flags);
 
-  // Arduino is Little Endian, but for portability convert LE to host CPU endian
+  // Convert Little Endian to host CPU endian
   return le16toh(Flags);
 }
 
@@ -395,7 +433,7 @@ inline word Mcp23s17::readIntCaptured(uint8_t ChipId) const
   // Read INTCAPA/B. Convention: A:low B:high => got it stored as Little Endian
   _read(_ChipOcAddr[ChipId], _INTCAP, (byte *) &Cap, sizeof Cap);
 
-  // Arduino is Little Endian, but for portability convert LE to host CPU endian
+  // Convert Little Endian to host CPU endian
   return le16toh(Cap);
 }
 

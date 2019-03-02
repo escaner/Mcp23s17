@@ -1,0 +1,86 @@
+#######################################
+# Syntax Coloring Map For Mcp23s17
+#######################################
+
+#######################################
+# Classes, Datatypes (KEYWORD1)
+#######################################
+
+Mcp23s17	KEYWORD1
+GpioPin	KEYWORD1
+GpioPinMask	KEYWORD1
+InterruptMode	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+addChip	KEYWORD2
+begin	KEYWORD2
+configInterrupts	KEYWORD2
+configGpio	KEYWORD2
+readPin	KEYWORD2
+writePin	KEYWORD2
+readPort	KEYWORD2
+readPortA	KEYWORD2
+readPortB	KEYWORD2
+writePort	KEYWORD2
+writePortA	KEYWORD2
+writePortB	KEYWORD2
+readIntFlags	KEYWORD2
+readIntFlagsA	KEYWORD2
+readIntFlagsB	KEYWORD2
+readIntCaptured	KEYWORD2
+readIntCapturedA	KEYWORD2
+readIntCapturedB	KEYWORD2
+end	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+GPA0	KEYWORD2
+GPA1	KEYWORD2
+GPA2	KEYWORD2
+GPA3	KEYWORD2
+GPA4	KEYWORD2
+GPA5	KEYWORD2
+GPA6	KEYWORD2
+GPA7	KEYWORD2
+GPB0	KEYWORD2
+GPB1	KEYWORD2
+GPB2	KEYWORD2
+GPB3	KEYWORD2
+GPB4	KEYWORD2
+GPB5	KEYWORD2
+GPB6	KEYWORD2
+GPB7	KEYWORD2
+GPA0_BIT	KEYWORD2
+GPA1_BIT	KEYWORD2
+GPA2_BIT	KEYWORD2
+GPA3_BIT	KEYWORD2
+GPA4_BIT	KEYWORD2
+GPA5_BIT	KEYWORD2
+GPA6_BIT	KEYWORD2
+GPA7_BIT	KEYWORD2
+GPB0_BIT	KEYWORD2
+GPB1_BIT	KEYWORD2
+GPB2_BIT	KEYWORD2
+GPB3_BIT	KEYWORD2
+GPB4_BIT	KEYWORD2
+GPB5_BIT	KEYWORD2
+GPB6_BIT	KEYWORD2
+GPB7_BIT	KEYWORD2
+INT_OFF	KEYWORD2
+INT_LOW	KEYWORD2
+INT_HIGH	KEYWORD2
+INT_CHANGE	KEYWORD2
+GPIO_NUM_PINS	KEYWORD2
+GPIO_NUM_PORTS	KEYWORD2
+GPIO_NUM_PINS_PER_PORT	KEYWORD2
+MAX_CHIPS	KEYWORD2
+ADDR_NOHW	KEYWORD2
