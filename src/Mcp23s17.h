@@ -225,7 +225,7 @@ protected:
 
 /*
  *   Reads both general purpose I/O ports (A & B) from the GPIO registers and
- *  and returns them as a 16bit word. This read will clear both ports interrupt
+ *  returns them as a 16bit word. This read will clear both ports interrupt
  *  flags and allow changes to INTCAP registers.
  *   When ChipId is not valid, returns with undefined value and no action.
  *  Parameters:

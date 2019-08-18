@@ -187,7 +187,7 @@ bool Mcp23s17::configInterrupts(uint8_t ChipId, uint8_t Polarity,
  *  Parameters:
  *  * ChipId: which of the managed MCP23S17 chips we are configuring.
  *  * PinMask: mask with a bit enabled for each pin we are configuring.
- *  * IoMode (INPUT, OUPUT, OUTPUT_PULLUP): desired I/O function for the pins
+ *  * IoMode (INPUT, OUPUT, INPUT_PULLUP): desired I/O function for the pins
  *    selected in PinMask.
  *  * PolInverse: whether to activate inverse polarity or not for the selected
  *    pins in PinMask. When enabled, the signal will be treated as inverted
